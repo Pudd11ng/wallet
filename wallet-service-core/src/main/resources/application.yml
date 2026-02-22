@@ -1,0 +1,31 @@
+server:
+  port: 8081 # The core service runs on port 8081
+
+spring:
+  application:
+    name: wallet-service-core
+  datasource:
+    url: jdbc:postgresql://localhost:5432/wallet_db
+    username: postgres
+    password: password # Replace with your local DB password
+    driver-class-name: org.postgresql.Driver
+  sql:
+    init:
+      mode: always
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml # Looks for SQL files in the /resources/mapper folder
+  configuration:
+    map-underscore-to-camel-case: true # Automatically maps DB 'user_id' to Java 'userId'
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+kafka:
+  bootstrap-servers: localhost:9092

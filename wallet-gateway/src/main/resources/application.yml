@@ -1,0 +1,43 @@
+server:
+  port: 8089 # The Gateway runs on the standard web port
+
+spring:
+  application:
+    name: wallet-gateway
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cloud:
+    gateway:
+      routes:
+        # 1. State-Changing Route (Strict Rate Limit)
+        - id: wallet-transfer-route
+          uri: lb://wallet-service-core
+          predicates:
+            - Path=/api/v1/wallets/transfer, /api/v1/wallets/topup, /api/v1/wallets/initialize
+            - Method=POST
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 2
+                redis-rate-limiter.burstCapacity: 2
+                key-resolver: "#{@clientIdResolver}"
+
+        # 2. Read-Only Route (Lenient Rate Limit)
+        - id: wallet-history-route
+          uri: lb://wallet-service-core
+          predicates:
+            - Path=/api/v1/wallets/**
+            - Method=GET
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 10
+                key-resolver: "#{@clientIdResolver}"
+# Tell the Gateway where the Phonebook is
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
