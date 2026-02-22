@@ -1,8 +1,9 @@
 package com.wallet.core.handler;
 
 import com.wallet.common.dto.TransferRequestDTO;
+import com.wallet.common.exception.WalletBusinessException;
 import com.wallet.core.entity.Wallet;
-import com.wallet.core.repository.WalletRepository;
+import com.wallet.core.mapper.WalletMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
@@ -12,11 +13,11 @@ import java.math.BigDecimal;
 
 @Slf4j
 @Component
-@Order(1) // Runs First
+@Order(1)
 @RequiredArgsConstructor
 public class ValidationHandler implements TransactionHandler {
 
-    private final WalletRepository walletRepository;
+    private final WalletMapper walletMapper; // Changed to MyBatis Mapper
 
     @Override
     public void process(TransactionContext context) {
@@ -24,24 +25,23 @@ public class ValidationHandler implements TransactionHandler {
         log.info("Step 1: Validating transfer request: {}", context.getRequestId());
 
         if (request.amount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Transfer amount must be greater than zero");
+            throw new WalletBusinessException("Transfer amount must be greater than zero");
         }
 
         if (request.fromWalletId().equals(request.toWalletId())) {
-            throw new IllegalArgumentException("Cannot transfer funds to the same wallet");
+            throw new WalletBusinessException("Cannot transfer funds to the same wallet");
         }
 
-        Wallet sender = walletRepository.findById(request.fromWalletId())
-                .orElseThrow(() -> new IllegalArgumentException("Sender wallet not found"));
+        Wallet sender = walletMapper.findWalletById(request.fromWalletId())
+                .orElseThrow(() -> new WalletBusinessException("Sender wallet not found"));
 
-        Wallet receiver = walletRepository.findById(request.toWalletId())
-                .orElseThrow(() -> new IllegalArgumentException("Receiver wallet not found"));
+        Wallet receiver = walletMapper.findWalletById(request.toWalletId())
+                .orElseThrow(() -> new WalletBusinessException("Receiver wallet not found"));
 
-        if (sender.getBalance().compareTo(request.amount()) < 0) {
-            throw new IllegalStateException("Insufficient funds");
+        if (sender.balance().compareTo(request.amount()) < 0) {
+            throw new WalletBusinessException("Insufficient funds");
         }
 
-        // Save to context for the next handlers
         context.setSenderWallet(sender);
         context.setReceiverWallet(receiver);
     }
