@@ -19,7 +19,7 @@ public class LedgerUpdateHandler implements TransactionHandler {
 
     @Override
     public void process(TransactionContext context) {
-        log.info("Step 3: Updating ledger for transaction: {}", context.getTransactionId());
+        log.info("Step 3: Updating ledger for transaction:  {}", context.getTransactionId());
 
         Wallet sender = context.getSenderWallet();
         Wallet receiver = context.getReceiverWallet();
