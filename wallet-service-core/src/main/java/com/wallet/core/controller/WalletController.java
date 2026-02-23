@@ -27,8 +27,8 @@ public class WalletController {
             @RequestHeader(value = "X-Request-ID") String requestId,
             @Valid @RequestBody TransferRequestDTO request) {
 
-        idempotencyService.checkAndLock(requestId);
         MDC.put("requestId", requestId);
+        idempotencyService.checkAndLock(requestId);
 
         try {
             log.info("Received transfer HTTP request.");

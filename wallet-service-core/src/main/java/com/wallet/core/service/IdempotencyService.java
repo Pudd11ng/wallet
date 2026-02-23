@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import com.wallet.common.exception.WalletBusinessException;
 
 import java.time.Duration;
 
@@ -28,7 +29,7 @@ public class IdempotencyService {
 
         if (Boolean.FALSE.equals(isNewRequest)) {
             log.warn("Duplicate request detected and blocked by Redis: {}", requestId);
-            throw new RuntimeException("Transaction already processed with Request ID: " + requestId);
+            throw new WalletBusinessException("Transaction already processed with Request ID: " + requestId);
             // Note: We will map this to a proper Custom Exception in Phase B!
         }
 
