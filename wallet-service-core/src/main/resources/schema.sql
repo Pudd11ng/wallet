@@ -29,3 +29,12 @@ CREATE TABLE IF NOT EXISTS journal_entries (
     amount DECIMAL(19, 4) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+
+-- 4. Transactional Outbox (Safely queues Kafka events)
+CREATE TABLE IF NOT EXISTS outbox_events (
+    id BIGSERIAL PRIMARY KEY,
+    topic VARCHAR(100) NOT NULL,
+    payload TEXT NOT NULL, -- We will store the JSON string here
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );

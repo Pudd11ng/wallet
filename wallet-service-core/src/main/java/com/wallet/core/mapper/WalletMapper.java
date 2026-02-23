@@ -3,6 +3,7 @@ package com.wallet.core.mapper;
 import com.wallet.core.entity.Wallet;
 import com.wallet.core.entity.TransactionRequest;
 import com.wallet.core.entity.JournalEntry;
+import com.wallet.core.entity.OutboxEvent;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -31,4 +32,9 @@ public interface WalletMapper {
 
     // 3. Ledger Queries
     void insertJournalEntry(JournalEntry entry);
+
+    // 4. Outbox Queries
+    void insertOutboxEvent(OutboxEvent event);
+    java.util.List<OutboxEvent> findPendingOutboxEvents();
+    void updateOutboxEventStatus(@Param("id") Long id, @Param("status") String status);
 }

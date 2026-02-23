@@ -38,4 +38,17 @@
         VALUES (#{transactionId}, #{walletId}, #{type}, #{amount})
     </insert>
 
+    <insert id="insertOutboxEvent">
+        INSERT INTO outbox_events (topic, payload, status)
+        VALUES (#{topic}, #{payload}, #{status})
+    </insert>
+
+    <select id="findPendingOutboxEvents" resultType="com.wallet.core.entity.OutboxEvent">
+        SELECT * FROM outbox_events WHERE status = 'PENDING' ORDER BY created_at ASC LIMIT 50
+    </select>
+
+    <update id="updateOutboxEventStatus">
+        UPDATE outbox_events SET status = #{status} WHERE id = #{id}
+    </update>
+
 </mapper>
