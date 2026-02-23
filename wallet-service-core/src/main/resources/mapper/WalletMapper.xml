@@ -38,6 +38,13 @@
         VALUES (#{transactionId}, #{walletId}, #{type}, #{amount})
     </insert>
 
+    <select id="findJournalEntriesByWalletId" resultType="com.wallet.core.entity.JournalEntry">
+        SELECT * FROM journal_entries
+        WHERE wallet_id = #{walletId}
+        ORDER BY created_at DESC
+            LIMIT 50
+    </select>
+
     <insert id="insertOutboxEvent">
         INSERT INTO outbox_events (topic, payload, status)
         VALUES (#{topic}, #{payload}, #{status})

@@ -32,6 +32,7 @@ public interface WalletMapper {
 
     // 3. Ledger Queries
     void insertJournalEntry(JournalEntry entry);
+    java.util.List<JournalEntry> findJournalEntriesByWalletId(@Param("walletId") String walletId);
 
     // 4. Outbox Queries
     void insertOutboxEvent(OutboxEvent event);
