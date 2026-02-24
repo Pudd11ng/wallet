@@ -38,8 +38,7 @@
         <module>wallet-discovery-server</module>
         <module>wallet-gateway</module>
         <module>wallet-notification</module>
-        <!--<module>wallet-notification</module>
-        <module>wallet-discovery-server/discovery</module>-->
+        <module>wallet-auth-service</module>
     </modules>
 
     <dependencyManagement>

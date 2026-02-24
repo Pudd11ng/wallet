@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wallet.auth.mapper.UserMapper">
+
+    <insert id="insertUser">
+        INSERT INTO users (id, username, password_hash)
+        VALUES (#{id}, #{username}, #{passwordHash})
+    </insert>
+
+    <select id="findByUsername" resultType="com.wallet.auth.entity.User">
+        SELECT * FROM users WHERE username = #{username}
+    </select>
+
+</mapper>
