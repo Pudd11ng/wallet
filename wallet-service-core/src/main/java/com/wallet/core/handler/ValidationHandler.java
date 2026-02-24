@@ -35,6 +35,10 @@ public class ValidationHandler implements TransactionHandler {
         Wallet sender = walletMapper.findWalletById(request.fromWalletId())
                 .orElseThrow(() -> new WalletBusinessException("Sender wallet not found"));
 
+        if (!sender.userId().equals(context.getClientId())) {
+            throw new WalletBusinessException("Unauthorized: You cannot transfer funds from a wallet you do not own.");
+        }
+
         Wallet receiver = walletMapper.findWalletById(request.toWalletId())
                 .orElseThrow(() -> new WalletBusinessException("Receiver wallet not found"));
 

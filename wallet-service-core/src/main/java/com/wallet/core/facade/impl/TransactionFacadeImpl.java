@@ -21,7 +21,7 @@ public class TransactionFacadeImpl implements TransactionFacade {
 
     @Override
     @Transactional
-    public String executeTransfer(String requestId, TransferRequestDTO request) {
+    public String executeTransfer(String requestId, String clientId, TransferRequestDTO request) {
 
         // 1. Generate the official Transaction ID (TXN-UUID)
         String transactionId = "TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
@@ -30,6 +30,7 @@ public class TransactionFacadeImpl implements TransactionFacade {
         TransactionContext context = TransactionContext.builder()
                 .requestId(requestId)
                 .transactionId(transactionId)
+                .clientId(clientId)
                 .request(request)
                 .build();
 

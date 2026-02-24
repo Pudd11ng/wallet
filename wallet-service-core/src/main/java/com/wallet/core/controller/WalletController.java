@@ -27,6 +27,7 @@ public class WalletController {
     @PostMapping("/initialize")
     public ResponseEntity<InitializeWalletResponseDTO> initializeWallet(
             @RequestHeader(value = "X-Request-ID") String requestId,
+            @RequestHeader(value = "X-Client-Id") String clientId,
             @Valid @RequestBody InitializeWalletRequestDTO request) {
 
         MDC.put("requestId", requestId);
@@ -34,7 +35,7 @@ public class WalletController {
 
         try {
             log.info("Received HTTP request to initialize wallet.");
-            InitializeWalletResponseDTO response = walletManagementService.initializeWallet(request);
+            InitializeWalletResponseDTO response = walletManagementService.initializeWallet(request, clientId);
             return new ResponseEntity<>(response, HttpStatus.CREATED); // Returns 201 Created
         } finally {
             MDC.clear();
@@ -44,6 +45,7 @@ public class WalletController {
     @PostMapping("/topup")
     public ResponseEntity<TopUpResponseDTO> topUpWallet(
             @RequestHeader(value = "X-Request-ID") String requestId,
+            @RequestHeader(value = "X-Client-Id") String clientId,
             @Valid @RequestBody TopUpRequestDTO request) {
 
         MDC.put("requestId", requestId);
@@ -51,7 +53,7 @@ public class WalletController {
 
         try {
             log.info("Received HTTP request for Wallet Top-Up.");
-            TopUpResponseDTO response = walletManagementService.topUpWallet(requestId, request);
+            TopUpResponseDTO response = walletManagementService.topUpWallet(requestId, request, clientId);
             return ResponseEntity.ok(response);
         } finally {
             MDC.clear();
@@ -61,14 +63,15 @@ public class WalletController {
     @GetMapping("/{walletId}/history")
     public ResponseEntity<WalletHistoryResponseDTO> getWalletHistory(
             @PathVariable String walletId,
-            @RequestHeader(value = "X-Request-ID") String requestId) {
+            @RequestHeader(value = "X-Request-ID") String requestId,
+            @RequestHeader(value = "X-Client-Id") String clientId) {
 
         MDC.put("requestId", requestId);
         // Note: No idempotency lock needed here because GET requests don't change data!
 
         try {
             log.info("Received HTTP request for Wallet History.");
-            WalletHistoryResponseDTO response = walletManagementService.getWalletHistory(walletId);
+            WalletHistoryResponseDTO response = walletManagementService.getWalletHistory(walletId, clientId);
             return ResponseEntity.ok(response);
         } finally {
             MDC.clear();
@@ -78,6 +81,7 @@ public class WalletController {
     @PostMapping("/transfer")
     public ResponseEntity<WalletResponseDTO> transferFunds(
             @RequestHeader(value = "X-Request-ID") String requestId,
+            @RequestHeader(value = "X-Client-Id") String clientId,
             @Valid @RequestBody TransferRequestDTO request) {
 
         MDC.put("requestId", requestId);
@@ -87,7 +91,7 @@ public class WalletController {
             log.info("Received transfer HTTP request.");
 
             // Execute the strict assembly line
-            String transactionId = transactionFacade.executeTransfer(requestId, request);
+            String transactionId = transactionFacade.executeTransfer(requestId, clientId, request);
 
             log.info("Transfer processed successfully. Sending 200 OK. Transaction ID: {}", transactionId);
 

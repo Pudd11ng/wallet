@@ -10,6 +10,7 @@ import lombok.Data;
 public class TransactionContext {
     private String requestId;
     private String transactionId;
+    private String clientId;
     private TransferRequestDTO request;
 
     // These will be filled in by the ValidationHandler as it moves down the chain

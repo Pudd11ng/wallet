@@ -25,9 +25,12 @@ public class WalletManagementService {
     private final WalletMapper walletMapper;
 
     @Transactional
-    public InitializeWalletResponseDTO initializeWallet(InitializeWalletRequestDTO request) {
+    public InitializeWalletResponseDTO initializeWallet(InitializeWalletRequestDTO request, String clientId) {
         log.info("Initializing new wallet for User ID: {}", request.userId());
 
+        if (!request.userId().equals(clientId)) {
+            throw new WalletBusinessException("Unauthorized: You cannot create a wallet for another user.");
+        }
         // 1. Check if the user already has a wallet
         walletMapper.findWalletByUserId(request.userId()).ifPresent(w -> {
             throw new WalletBusinessException("User already has an active wallet: " + w.id());
@@ -62,12 +65,16 @@ public class WalletManagementService {
     }
 
     @Transactional
-    public TopUpResponseDTO topUpWallet(String requestId, TopUpRequestDTO request) {
+    public TopUpResponseDTO topUpWallet(String requestId, TopUpRequestDTO request, String clientId) {
         log.info("Processing Top-Up of {} for Wallet ID: {}", request.amount(), request.walletId());
 
         // 1. Fetch the Wallet
         Wallet wallet = walletMapper.findWalletById(request.walletId())
                 .orElseThrow(() -> new WalletBusinessException("Wallet not found: " + request.walletId()));
+
+        if (!wallet.userId().equals(clientId)) {
+            throw new WalletBusinessException("Unauthorized: You do not own this wallet.");
+        }
 
         if (!"ACTIVE".equals(wallet.status())) {
             throw new WalletBusinessException("Wallet is not active.");
@@ -102,12 +109,16 @@ public class WalletManagementService {
         return new TopUpResponseDTO(transactionId, newBalance, wallet.currency());
     }
 
-    public WalletHistoryResponseDTO getWalletHistory(String walletId) {
+    public WalletHistoryResponseDTO getWalletHistory(String walletId, String clientId) {
         log.info("Fetching history for Wallet ID: {}", walletId);
 
         // 1. Fetch the Wallet to get the current balance
         Wallet wallet = walletMapper.findWalletById(walletId)
                 .orElseThrow(() -> new WalletBusinessException("Wallet not found: " + walletId));
+
+        if (!wallet.userId().equals(clientId)) {
+            throw new WalletBusinessException("Unauthorized: You do not have permission to view this history.");
+        }
 
         // 2. Fetch the last 50 ledger entries
         List<JournalEntry> entries = walletMapper.findJournalEntriesByWalletId(walletId);
