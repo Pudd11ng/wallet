@@ -12,8 +12,7 @@ public class TransactionContext {
     private String transactionId;
     private String clientId;
     private TransferRequestDTO request;
-
-    // These will be filled in by the ValidationHandler as it moves down the chain
     private Wallet senderWallet;
     private Wallet receiverWallet;
+    private String senderUsername;
 }

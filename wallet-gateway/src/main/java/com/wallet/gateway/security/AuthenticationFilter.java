@@ -108,11 +108,17 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                             return onError(exchange, "Payload integrity check failed", HttpStatus.FORBIDDEN);
                         }
 
-                        exchange.getRequest().mutate()
+                        // 1. Create the new Request containing the header
+                        org.springframework.http.server.reactive.ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
                                 .header("X-Client-Id", userId)
                                 .build();
 
-                        return chain.filter(exchange);
+                        // 2. Create a new Exchange containing the new Request
+                        ServerWebExchange mutatedExchange = exchange.mutate()
+                                .request(mutatedRequest)
+                                .build();
+
+                        return chain.filter(mutatedExchange);
                     });
         };
     }

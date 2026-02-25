@@ -12,4 +12,8 @@
         SELECT * FROM users WHERE username = #{username}
     </select>
 
+    <select id="findById" resultType="com.wallet.auth.entity.User">
+        SELECT * FROM users WHERE id = #{id}
+    </select>
+
 </mapper>

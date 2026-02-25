@@ -29,3 +29,9 @@ eureka:
 
 kafka:
   bootstrap-servers: localhost:9092
+
+grpc:
+  client:
+    auth-service:
+      address: 'static://localhost:9090'
+      negotiation-type: plaintext

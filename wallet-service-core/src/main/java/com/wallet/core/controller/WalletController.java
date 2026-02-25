@@ -91,12 +91,11 @@ public class WalletController {
             log.info("Received transfer HTTP request.");
 
             // Execute the strict assembly line
-            String transactionId = transactionFacade.executeTransfer(requestId, clientId, request);
+            WalletResponseDTO response = transactionFacade.executeTransfer(requestId, clientId, request);
 
-            log.info("Transfer processed successfully. Sending 200 OK. Transaction ID: {}", transactionId);
+            log.info("Transfer processed successfully. Sending 200 OK.");
 
-            // We return a generic response for now (we will improve this when we add the History API)
-            return ResponseEntity.ok(new WalletResponseDTO(request.fromWalletId(), BigDecimal.ZERO, "MYR", "COMPLETED"));
+            return ResponseEntity.ok(response);
 
         } finally {
             MDC.clear();

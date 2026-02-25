@@ -43,7 +43,7 @@ public class LedgerUpdateHandler implements TransactionHandler {
         // ---> THE FIX: Insert the TransactionRequest to satisfy the Foreign Key constraint! <---
         TransactionRequest txnRequest = new TransactionRequest(
                 context.getTransactionId(),
-                context.getRequestId(),
+                context.getSenderUsername(),
                 "TRANSFER",
                 "SUCCESS",
                 amount,
