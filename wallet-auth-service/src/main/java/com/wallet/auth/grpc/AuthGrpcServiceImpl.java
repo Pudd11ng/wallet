@@ -1,7 +1,7 @@
 package com.wallet.auth.grpc;
 
 import com.wallet.auth.entity.User;
-import com.wallet.auth.mapper.UserMapper;
+import com.wallet.auth.service.UserService;
 import com.wallet.common.grpc.AuthServiceGrpcApiGrpc;
 import com.wallet.common.grpc.UserRequest;
 import com.wallet.common.grpc.UserResponse;
@@ -16,7 +16,7 @@ import net.devh.boot.grpc.server.service.GrpcService;
 @RequiredArgsConstructor
 public class AuthGrpcServiceImpl extends AuthServiceGrpcApiGrpc.AuthServiceGrpcApiImplBase {
 
-    private final UserMapper userMapper;
+    private final UserService userService;
 
     @Override
     public void getUserById(UserRequest request, StreamObserver<UserResponse> responseObserver) {
@@ -24,14 +24,17 @@ public class AuthGrpcServiceImpl extends AuthServiceGrpcApiGrpc.AuthServiceGrpcA
 
         try {
             // 1. Fetch the user directly from the database using the new ID lookup
-            User user = userMapper.findById(request.getUserId())
-                    .orElseThrow(() -> {
-                        log.warn("gRPC User lookup failed: ID {} not found in database", request.getUserId());
-                        // Return a standard gRPC 404 NOT FOUND error over the wire
-                        return Status.NOT_FOUND
+            User user = userService.getUserById(request.getUserId());
+
+            if (user == null) {
+                log.warn("gRPC User lookup failed: ID {} not found", request.getUserId());
+                responseObserver.onError(
+                        Status.NOT_FOUND
                                 .withDescription("User not found with ID: " + request.getUserId())
-                                .asRuntimeException();
-                    });
+                                .asRuntimeException()
+                );
+                return; // Stop execution!
+            }
 
             // 2. Build the Protobuf Response using real database values
             UserResponse response = UserResponse.newBuilder()
