@@ -140,4 +140,11 @@ public class WalletManagementService {
                 transactionHistory
         );
     }
+
+    public String getWalletIdByUserId(String userId) {
+        log.info("Fetching Wallet ID for User ID: {}", userId);
+        return walletMapper.findWalletByUserId(userId)
+                .orElseThrow(() -> new WalletBusinessException("Wallet not found for user: " + userId))
+                .id();
+    }
 }
