@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+// Tell Protobuf to generate standard Java classes
+option java_multiple_files = true;
+option java_package = "com.wallet.common.grpc";
+
+// 1. Define the Service (Like a Java Interface)
+service AuthServiceGrpcApi {
+  rpc GetUserById (UserRequest) returns (UserResponse);
+}
+
+// 2. Define the Request Payload
+message UserRequest {
+  string userId = 1;
+}
+
+// 3. Define the Response Payload
+message UserResponse {
+  string userId = 1;
+  string username = 2;
+}

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wallet.core.mapper.WalletMapper">
+
+    <insert id="insertWallet">
+        INSERT INTO wallets (id, user_id, balance, currency, status, version)
+        VALUES (#{id}, #{userId}, #{balance}, #{currency}, #{status}, #{version})
+    </insert>
+
+    <select id="findWalletByUserId" resultType="com.wallet.core.entity.Wallet">
+        SELECT * FROM wallets WHERE user_id = #{userId}
+    </select>
+
+    <select id="findWalletById" resultType="com.wallet.core.entity.Wallet">
+        SELECT * FROM wallets WHERE id = #{id}
+    </select>
+
+    <update id="updateWalletBalance">
+        UPDATE wallets
+        SET balance = #{newBalance},
+            version = version + 1,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{walletId} AND version = #{oldVersion}
+    </update>
+
+    <insert id="insertTransactionRequest">
+        INSERT INTO transaction_requests (id, request_id, type, status, amount)
+        VALUES (#{id}, #{requestId}, #{type}, #{status}, #{amount})
+    </insert>
+
+    <select id="findTransactionByRequestId" resultType="com.wallet.core.entity.TransactionRequest">
+        SELECT * FROM transaction_requests WHERE request_id = #{requestId}
+    </select>
+
+    <insert id="insertJournalEntry">
+        INSERT INTO journal_entries (transaction_id, wallet_id, type, amount)
+        VALUES (#{transactionId}, #{walletId}, #{type}, #{amount})
+    </insert>
+
+    <select id="findJournalEntriesByWalletId" resultType="com.wallet.core.entity.JournalEntry">
+        SELECT * FROM journal_entries
+        WHERE wallet_id = #{walletId}
+        ORDER BY created_at DESC
+            LIMIT 50
+    </select>
+
+    <insert id="insertOutboxEvent">
+        INSERT INTO outbox_events (topic, payload, status)
+        VALUES (#{topic}, #{payload}, #{status})
+    </insert>
+
+    <select id="findPendingOutboxEvents" resultType="com.wallet.core.entity.OutboxEvent">
+        SELECT * FROM outbox_events WHERE status = 'PENDING' ORDER BY created_at ASC LIMIT 50
+    </select>
+
+    <update id="updateOutboxEventStatus">
+        UPDATE outbox_events SET status = #{status} WHERE id = #{id}
+    </update>
+
+</mapper>
