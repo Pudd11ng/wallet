@@ -13,8 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/wallets")
@@ -103,7 +101,7 @@ public class WalletController {
     }
 
     @PostMapping("/qr/generate")
-    public ResponseEntity<String> generateQr(
+    public ResponseEntity<QrGenerateResponseDTO> generateQr(
             @RequestHeader(value = "X-Request-ID") String requestId,
             @RequestHeader("X-Client-Id") String clientId,
             @RequestBody QrGenerateRequestDTO request) {
@@ -112,7 +110,7 @@ public class WalletController {
 
         try {
             String qrString = qrService.generateQrCode(clientId, request);
-            return ResponseEntity.ok(qrString);
+            return ResponseEntity.ok(new QrGenerateResponseDTO(qrString));
 
         } finally {
             MDC.clear();

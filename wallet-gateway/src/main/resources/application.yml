@@ -15,7 +15,7 @@ spring:
         - id: wallet-transfer-route
           uri: lb://wallet-service-core
           predicates:
-            - Path=/api/v1/wallets/transfer, /api/v1/wallets/topup, /api/v1/wallets/initialize
+            - Path=/api/v1/wallets/transfer, /api/v1/wallets/topup, /api/v1/wallets/initialize, /api/v1/wallets/qr/generate, /api/v1/wallets/qr/decode
             - Method=POST
           filters:
             - AuthenticationFilter
