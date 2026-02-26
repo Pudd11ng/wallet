@@ -1,8 +1,9 @@
 // wallet-service-core/src/main/java/com/wallet/core/strategy/QrStrategyFactory.java
-package com.wallet.core.strategy;
+package com.wallet.core.factory;
 
 import com.wallet.common.enums.QrFormat;
 import com.wallet.common.exception.WalletBusinessException;
+import com.wallet.core.strategy.QrProcessingStrategy;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

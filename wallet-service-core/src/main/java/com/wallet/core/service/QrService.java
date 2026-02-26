@@ -4,7 +4,7 @@ import com.wallet.common.dto.QrDecodeRequestDTO;
 import com.wallet.common.dto.QrDecodeResponseDTO;
 import com.wallet.common.dto.QrGenerateRequestDTO;
 import com.wallet.core.strategy.QrProcessingStrategy;
-import com.wallet.core.strategy.QrStrategyFactory;
+import com.wallet.core.factory.QrStrategyFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

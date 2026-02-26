@@ -17,6 +17,10 @@ spring:
       host: localhost
       port: 6379
 
+app:
+  security:
+    qr-secret: "SuperSecretBankKey123!@#"
+
 mybatis:
   mapper-locations: classpath:mapper/*.xml # Looks for SQL files in the /resources/mapper folder
   configuration:

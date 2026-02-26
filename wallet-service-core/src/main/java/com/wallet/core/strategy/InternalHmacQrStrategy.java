@@ -4,6 +4,7 @@ package com.wallet.core.strategy;
 import com.wallet.common.dto.QrDecodeResponseDTO;
 import com.wallet.common.enums.QrFormat;
 import com.wallet.common.exception.WalletBusinessException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Mac;
@@ -15,8 +16,8 @@ import java.util.Base64;
 @Component
 public class InternalHmacQrStrategy implements QrProcessingStrategy {
 
-    // In production, this lives in AWS KMS or HashiCorp Vault.
-    private static final String QR_SECRET = "SuperSecretBankKey123!@#";
+    @Value("${app.security.qr-secret}")
+    private String qrSecret;
 
     @Override
     public QrFormat getSupportedFormat() {
@@ -67,17 +68,16 @@ public class InternalHmacQrStrategy implements QrProcessingStrategy {
     }
 
     // Standard Java Cryptography helper for HMAC-SHA256
+
     private String generateHmac(String data) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
-            //TODO
-            SecretKeySpec secretKey = new SecretKeySpec(QR_SECRET.getBytes(), "HmacSHA256");
+            SecretKeySpec secretKey = new SecretKeySpec(qrSecret.getBytes(), "HmacSHA256");
             mac.init(secretKey);
             byte[] hash = mac.doFinal(data.getBytes());
             return Base64.getEncoder().encodeToString(hash);
         } catch (Exception e) {
-            //TODO
-            throw new RuntimeException("Failed to generate QR signature", e);
+            throw new WalletBusinessException("Failed to generate QR signature");
         }
     }
 }
