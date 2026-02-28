@@ -1,6 +1,7 @@
 package com.wallet.core.handler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -11,8 +12,8 @@ import java.math.BigDecimal;
 @Order(2) // Runs Second
 public class LimitCheckHandler implements TransactionHandler {
 
-    // Example hardcoded limit (could be moved to application.yml or DB)
-    private static final BigDecimal MAX_TRANSFER_LIMIT = new BigDecimal("10000.00");
+    @Value("${app.transfer.max-limit}")
+    private BigDecimal maxTransferLimit;
 
     @Override
     public void process(TransactionContext context) {
@@ -20,8 +21,8 @@ public class LimitCheckHandler implements TransactionHandler {
 
         BigDecimal amount = context.getRequest().amount();
 
-        if (amount.compareTo(MAX_TRANSFER_LIMIT) > 0) {
-            log.warn("Transfer amount {} exceeds maximum limit {}", amount, MAX_TRANSFER_LIMIT);
+        if (amount.compareTo(maxTransferLimit) > 0) {
+            log.warn("Transfer amount {} exceeds maximum limit {}", amount, maxTransferLimit);
             throw new IllegalStateException("Transfer amount exceeds the maximum allowed limit");
         }
 

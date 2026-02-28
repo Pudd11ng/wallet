@@ -20,6 +20,8 @@ spring:
 app:
   security:
     qr-secret: "SuperSecretBankKey123!@#"
+  transfer:
+    max-limit: 10000.00
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml # Looks for SQL files in the /resources/mapper folder
