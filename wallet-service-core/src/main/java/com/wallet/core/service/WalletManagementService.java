@@ -125,7 +125,7 @@ public class WalletManagementService {
 
         // 3. Map the DB Entities to DTOs
         List<TransactionHistoryDTO> transactionHistory = entries.stream()
-                .map(entry -> new TransactionHistoryDTO(
+                .map(entry -> TransactionHistoryDTO.create(
                         entry.transactionId(),
                         entry.type(),
                         entry.amount(),

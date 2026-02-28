@@ -1,5 +1,6 @@
 package com.wallet.core.controller;
 
+import com.wallet.common.constants.WalletConstants;
 import com.wallet.common.dto.*;
 import com.wallet.core.annotation.Idempotent;
 import com.wallet.core.facade.TransactionFacade;
@@ -26,8 +27,8 @@ public class WalletController {
     @Idempotent
     @PostMapping("/initialize")
     public ResponseEntity<InitializeWalletResponseDTO> initializeWallet(
-            @RequestHeader(value = "X-Request-ID") String requestId,
-            @RequestHeader(value = "X-Client-Id") String clientId,
+            @RequestHeader(value = WalletConstants.HEADER_REQUEST_ID) String requestId,
+            @RequestHeader(value = WalletConstants.HEADER_CLIENT_ID) String clientId,
             @Valid @RequestBody InitializeWalletRequestDTO request) {
 
         MDC.put("requestId", requestId);
@@ -44,8 +45,8 @@ public class WalletController {
     @Idempotent
     @PostMapping("/topup")
     public ResponseEntity<TopUpResponseDTO> topUpWallet(
-            @RequestHeader(value = "X-Request-ID") String requestId,
-            @RequestHeader(value = "X-Client-Id") String clientId,
+            @RequestHeader(value = WalletConstants.HEADER_REQUEST_ID) String requestId,
+            @RequestHeader(value = WalletConstants.HEADER_CLIENT_ID) String clientId,
             @Valid @RequestBody TopUpRequestDTO request) {
 
         MDC.put("requestId", requestId);
@@ -62,8 +63,8 @@ public class WalletController {
     @GetMapping("/{walletId}/history")
     public ResponseEntity<WalletHistoryResponseDTO> getWalletHistory(
             @PathVariable String walletId,
-            @RequestHeader(value = "X-Request-ID") String requestId,
-            @RequestHeader(value = "X-Client-Id") String clientId) {
+            @RequestHeader(value = WalletConstants.HEADER_REQUEST_ID) String requestId,
+            @RequestHeader(value = WalletConstants.HEADER_CLIENT_ID) String clientId) {
 
         MDC.put("requestId", requestId);
 
@@ -79,8 +80,8 @@ public class WalletController {
     @Idempotent
     @PostMapping("/transfer")
     public ResponseEntity<WalletResponseDTO> transferFunds(
-            @RequestHeader(value = "X-Request-ID") String requestId,
-            @RequestHeader(value = "X-Client-Id") String clientId,
+            @RequestHeader(value = WalletConstants.HEADER_REQUEST_ID) String requestId,
+            @RequestHeader(value = WalletConstants.HEADER_CLIENT_ID) String clientId,
             @Valid @RequestBody TransferRequestDTO request) {
 
         MDC.put("requestId", requestId);
@@ -102,7 +103,7 @@ public class WalletController {
 
     @PostMapping("/qr/generate")
     public ResponseEntity<QrGenerateResponseDTO> generateQr(
-            @RequestHeader(value = "X-Request-ID") String requestId,
+            @RequestHeader(value = WalletConstants.HEADER_REQUEST_ID) String requestId,
             @RequestHeader("X-Client-Id") String clientId,
             @RequestBody QrGenerateRequestDTO request) {
 
@@ -119,7 +120,7 @@ public class WalletController {
 
     @PostMapping("/qr/decode")
     public ResponseEntity<QrDecodeResponseDTO> decodeQr(
-            @RequestHeader(value = "X-Request-ID") String requestId,
+            @RequestHeader(value = WalletConstants.HEADER_REQUEST_ID) String requestId,
             @RequestBody QrDecodeRequestDTO request) {
 
         MDC.put("requestId", requestId);

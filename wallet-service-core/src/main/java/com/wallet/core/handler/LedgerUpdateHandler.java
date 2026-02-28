@@ -1,8 +1,11 @@
 package com.wallet.core.handler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wallet.common.dto.TransferEventDTO;
 import com.wallet.common.exception.WalletBusinessException;
+import com.wallet.common.enums.TransactionType;
+import com.wallet.common.enums.TransactionStatus;
 import com.wallet.core.entity.JournalEntry;
 import com.wallet.core.entity.OutboxEvent;
 import com.wallet.core.entity.TransactionRequest;
@@ -44,8 +47,8 @@ public class LedgerUpdateHandler implements TransactionHandler {
         TransactionRequest txnRequest = new TransactionRequest(
                 context.getTransactionId(),
                 context.getRequestId(),
-                "TRANSFER",
-                "SUCCESS",
+                TransactionType.TRANSFER.name(),
+                TransactionStatus.SUCCESS.name(),
                 amount,
                 LocalDateTime.now()
         );
@@ -57,16 +60,23 @@ public class LedgerUpdateHandler implements TransactionHandler {
 
         // 4. THE OUTBOX PATTERN
         try {
-            TransferEventDTO eventDto = new TransferEventDTO(context.getTransactionId(), sender.id(), receiver.id(), amount, "SUCCESS");
+            TransferEventDTO eventDto = new TransferEventDTO(
+                    context.getTransactionId(),
+                    sender.id(),
+                    receiver.id(),
+                    amount,
+                    TransactionStatus.SUCCESS.name()
+            );
             String jsonPayload = objectMapper.writeValueAsString(eventDto);
 
             OutboxEvent outboxEvent = new OutboxEvent(null, "transfer-events", jsonPayload, "PENDING", LocalDateTime.now());
             walletMapper.insertOutboxEvent(outboxEvent);
 
             log.info("Outbox event created for {}", context.getTransactionId());
-        } catch (Exception e) {
-            log.error("Failed to create outbox event", e);
-            throw new WalletBusinessException("Failed to serialize outbox event");
+
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize outbox event", e);
+            throw new WalletBusinessException("Internal Error: Failed to format outbox event");
         }
     }
 }

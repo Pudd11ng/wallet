@@ -1,6 +1,7 @@
 package com.wallet.gateway.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -21,14 +22,14 @@ import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class OutboundLoggingFilter implements GlobalFilter, Ordered {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         long startTime = System.currentTimeMillis();
-        String path = exchange.getRequest().getURI().getPath();
         String method = exchange.getRequest().getMethod().name();
 
         // --- 1. INTERCEPT THE REQUEST ---
@@ -37,7 +38,9 @@ public class OutboundLoggingFilter implements GlobalFilter, Ordered {
             public Flux<DataBuffer> getBody() {
                 return super.getBody().doOnNext(dataBuffer -> {
                     byte[] bytes = new byte[dataBuffer.readableByteCount()];
-                    dataBuffer.asByteBuffer().asReadOnlyBuffer().get(bytes);
+                    int originalPosition = dataBuffer.readPosition();
+                    dataBuffer.read(bytes);
+                    dataBuffer.readPosition(originalPosition);
                     String bodyStr = new String(bytes, StandardCharsets.UTF_8);
 
                     logOutboundRequest(exchange.getRequest(), bodyStr);
@@ -86,9 +89,9 @@ public class OutboundLoggingFilter implements GlobalFilter, Ordered {
         sb.append("Method : ").append(request.getMethod().name()).append("\n");
         sb.append("URI    : ").append(request.getURI()).append("\n");
 
-        request.getHeaders().forEach((key, value) -> {
-            sb.append("Header : ").append(key).append(" = ").append(value).append("\n");
-        });
+        request.getHeaders().forEach((key, value) ->
+            sb.append("Header : ").append(key).append(" = ").append(value).append("\n")
+        );
 
         if (!body.isEmpty()) {
             sb.append("Body   :\n").append(formatJson(body)).append("\n");
@@ -104,9 +107,9 @@ public class OutboundLoggingFilter implements GlobalFilter, Ordered {
         sb.append("Status : ").append(status).append("\n");
         sb.append("Time   : ").append(duration).append(" ms\n");
 
-        response.getHeaders().forEach((key, value) -> {
-            sb.append("Header : ").append(key).append(" = ").append(value).append("\n");
-        });
+        response.getHeaders().forEach((key, value) ->
+            sb.append("Header : ").append(key).append(" = ").append(value).append("\n")
+        );
 
         if (!body.isEmpty()) {
             sb.append("Body   :\n").append(formatJson(body)).append("\n");

@@ -10,6 +10,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,8 +27,9 @@ public class AuthService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    // This MUST exactly match the secret in your Gateway's JwtUtil!
-    private static final String SECRET = "5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
+    // In a real production environment, this would be an RSA Public Key loaded from a vault.
+    @Value("${app.security.jwt-secret}")
+    private String secret;
 
     @Transactional
     public AuthResponseDTO register(RegisterRequestDTO request) {
@@ -71,7 +73,7 @@ public class AuthService {
     }
 
     private String generateToken(String userId) {
-        byte[] keyBytes = io.jsonwebtoken.io.Decoders.BASE64.decode(SECRET);
+        byte[] keyBytes = io.jsonwebtoken.io.Decoders.BASE64.decode(secret);
         Key key = Keys.hmacShaKeyFor(keyBytes);
 
         return Jwts.builder()
