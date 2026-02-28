@@ -9,4 +9,7 @@ public record TransactionHistoryDTO(
         BigDecimal amount,
         LocalDateTime timestamp
 ) {
+    public static TransactionHistoryDTO create(String txId, String type, BigDecimal amount, LocalDateTime time) {
+        return new TransactionHistoryDTO(txId, type, amount, time);
+    }
 }

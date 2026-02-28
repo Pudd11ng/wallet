@@ -1,5 +1,6 @@
 package com.wallet.core.handler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wallet.common.dto.TransferEventDTO;
 import com.wallet.common.exception.WalletBusinessException;
@@ -59,16 +60,23 @@ public class LedgerUpdateHandler implements TransactionHandler {
 
         // 4. THE OUTBOX PATTERN
         try {
-            TransferEventDTO eventDto = new TransferEventDTO(context.getTransactionId(), sender.id(), receiver.id(), amount, TransactionStatus.SUCCESS.name());
+            TransferEventDTO eventDto = new TransferEventDTO(
+                    context.getTransactionId(),
+                    sender.id(),
+                    receiver.id(),
+                    amount,
+                    TransactionStatus.SUCCESS.name()
+            );
             String jsonPayload = objectMapper.writeValueAsString(eventDto);
 
             OutboxEvent outboxEvent = new OutboxEvent(null, "transfer-events", jsonPayload, "PENDING", LocalDateTime.now());
             walletMapper.insertOutboxEvent(outboxEvent);
 
             log.info("Outbox event created for {}", context.getTransactionId());
-        } catch (Exception e) {
-            log.error("Failed to create outbox event", e);
-            throw new WalletBusinessException("Failed to serialize outbox event");
+
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize outbox event", e);
+            throw new WalletBusinessException("Internal Error: Failed to format outbox event");
         }
     }
 }
