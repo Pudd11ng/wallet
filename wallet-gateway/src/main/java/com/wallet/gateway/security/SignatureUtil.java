@@ -1,6 +1,7 @@
 package com.wallet.gateway.security;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.KeyFactory;
@@ -14,15 +15,13 @@ import java.util.Base64;
 public class SignatureUtil {
 
     // Simulated Vault: This is a dummy RSA Public Key (Base64 encoded)
-    private static final String PUBLIC_KEY_BASE64 = "MIGeMA0GCSqGSIb3DQEBAQUAA4GMADCBiAKBgG16si2UY4460tL93rYELxnA6hMp\n" +
-            "Jwe32s2JV2kJJ0Gy2xJj/wCpNcR+iYDwq91knVTxllpfY+UlHWjqZAP7spD4zQwk\n" +
-            "UGvV3XQ9q/1RgQVeL8Hck38C6emlgQoZK88MoIADCr6mu0rT31ZeZ23mM2p7hmRp\n" +
-            "1NjVwdsioNSw/tUxAgMBAAE=";
+    @Value("${app.security.rsa-public-key}")
+    private String publicKeyBase64;
 
     public boolean verifySignature(String payload, String signatureBase64) {
         try {
             // 1. Strip all newlines and spaces from the Public Key
-            String cleanPublicKey = PUBLIC_KEY_BASE64.replaceAll("\\s+", "");
+            String cleanPublicKey = publicKeyBase64.replaceAll("\\s+", "");
             byte[] keyBytes = Base64.getDecoder().decode(cleanPublicKey);
 
             X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
