@@ -30,18 +30,16 @@ class IdempotencyServiceTest {
     @InjectMocks
     private IdempotencyService idempotencyService;
 
-    @BeforeEach
-    void setUp() {
-        // Essential setup: the service calls redisTemplate.opsForValue().setIfAbsent(...)
-        // We must mock the chained method call to prevent NullPointerExceptions.
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-    }
-
     @Test
     void isRequestProcessed_WhenKeyIsAbsent_SetsLockAndReturnsFalse() {
         // Arrange
         String requestId = "REQ-123";
         String redisKey = "IDEMPOTENCY:" + requestId;
+
+        // Essential setup: the service calls
+        // redisTemplate.opsForValue().setIfAbsent(...)
+        // We must mock the chained method call to prevent NullPointerExceptions.
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         // Mock Redis to simulate the key does NOT exist, so it successfully sets it
         // (returns true)
@@ -59,6 +57,11 @@ class IdempotencyServiceTest {
         // Arrange
         String requestId = "REQ-456";
         String redisKey = "IDEMPOTENCY:" + requestId;
+
+        // Essential setup: the service calls
+        // redisTemplate.opsForValue().setIfAbsent(...)
+        // We must mock the chained method call to prevent NullPointerExceptions.
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         // Mock Redis to simulate the key ALREADY exists, so it fails to set it (returns
         // false)
