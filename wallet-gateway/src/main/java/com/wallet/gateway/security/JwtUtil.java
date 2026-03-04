@@ -11,7 +11,8 @@ import java.security.Key;
 @Component
 public class JwtUtil {
 
-    // In a real production environment, this would be an RSA Public Key loaded from a vault.
+    // In a real production environment, this would be an RSA Public Key loaded from
+    // a vault.
     @Value("${app.security.jwt-secret}")
     private String secret;
 
@@ -27,5 +28,15 @@ public class JwtUtil {
     private Key getSignKey() {
         byte[] keyBytes = io.jsonwebtoken.io.Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String getAuthHeader(org.springframework.http.server.reactive.ServerHttpRequest request) {
+        if (request.getHeaders().containsKey("Authorization")) {
+            String header = request.getHeaders().getFirst("Authorization");
+            if (header != null && header.startsWith("Bearer ")) {
+                return header.substring(7);
+            }
+        }
+        return null;
     }
 }
