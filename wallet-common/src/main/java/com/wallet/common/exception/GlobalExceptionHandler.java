@@ -57,4 +57,25 @@ public class GlobalExceptionHandler {
                 java.time.LocalDateTime.now());
         return new ResponseEntity<>(errorResponse, org.springframework.http.HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(
+            org.springframework.web.bind.MethodArgumentNotValidException ex) {
+        String requestId = MDC.get("requestId");
+
+        // Extract the first validation error message
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .findFirst()
+                .orElse("Validation failed");
+
+        log.warn("Validation error [{}]: {}", requestId, errorMessage);
+
+        ErrorResponse response = new ErrorResponse(
+                "ERR_BAD_REQUEST",
+                errorMessage,
+                requestId,
+                java.time.LocalDateTime.now());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
 }
