@@ -26,8 +26,7 @@ public class GlobalExceptionHandler {
                 "ERR_BUSINESS_RULE",
                 ex.getMessage(),
                 requestId,
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
@@ -42,8 +41,41 @@ public class GlobalExceptionHandler {
                 "ERR_INTERNAL_SERVER",
                 "An unexpected error occurred. Please contact support with Request ID: " + requestId,
                 requestId,
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(org.springframework.web.bind.MissingRequestHeaderException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRequestHeader(
+            org.springframework.web.bind.MissingRequestHeaderException ex) {
+        log.warn("Missing request header: {}", ex.getHeaderName());
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                "ERR_BAD_REQUEST",
+                "Missing required header: " + ex.getHeaderName(),
+                org.slf4j.MDC.get("requestId"),
+                java.time.LocalDateTime.now());
+        return new ResponseEntity<>(errorResponse, org.springframework.http.HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(
+            org.springframework.web.bind.MethodArgumentNotValidException ex) {
+        String requestId = MDC.get("requestId");
+
+        // Extract the first validation error message
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .findFirst()
+                .orElse("Validation failed");
+
+        log.warn("Validation error [{}]: {}", requestId, errorMessage);
+
+        ErrorResponse response = new ErrorResponse(
+                "ERR_BAD_REQUEST",
+                errorMessage,
+                requestId,
+                java.time.LocalDateTime.now());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 }
