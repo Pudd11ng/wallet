@@ -13,7 +13,7 @@
 
 ## 📖 What Is This?
 
-This is a **digital e-wallet application** built from the ground up with a modern **Microservices Architecture**. Users can:
+This is a simple**digital e-wallet application** built with **Microservices Architecture**. Users can:
 
 - **Register & authenticate** with JWT-secured endpoints
 - **Provision a wallet** linked to their identity
@@ -96,6 +96,7 @@ A unique `X-Request-ID` header ensures that **network retries never result in du
 
 | Table | Purpose |
 | :--- | :--- |
+| `users` | System identities & securely hashed credentials |
 | `wallets` | Current available balance per user (with **optimistic locking** to prevent race conditions) |
 | `transaction_requests` | API request lifecycle tracking & idempotency enforcement |
 | `journal_entries` | **Immutable ledger** — every transaction recorded as paired debits and credits |
@@ -157,7 +158,7 @@ Start the Spring Boot applications **in this exact order** to ensure successful 
 | **1** | **Register & Login** — Run `/auth/register`, then `/auth/login`. | Copy the `token` from the response into the `jwt_token` environment variable. |
 | **2** | **Initialize Ledger** — Run `/wallets/initialize`. | The `userId` in the payload must match the one returned during login. |
 | **3** | **Top-Up & Transfer** — Run `/wallets/topup`, then `/wallets/transfer`. | See the idempotency note below. |
-| **4** | **QR Codes** — Run `/qr/generate`. | Supports two strategy patterns (see below). |
+| **4** | **QR Codes** — Run `/qr/generate`, then `/qr/decode`. | Supports two strategy patterns (see below). |
 | **5** | **Verify Ledger** — Run `/wallets/{walletId}/history`. | View immutable double-entry records & real-time balance. |
 
 > [!WARNING]
@@ -174,7 +175,7 @@ Start the Spring Boot applications **in this exact order** to ensure successful 
 
 ## 📡 API Reference
 
-> All requests are routed through `wallet-gateway` at **`http://localhost:8080`**.
+> All requests are routed through `wallet-gateway` at **`http://localhost:8089`**.
 
 ### Required Security Headers
 
