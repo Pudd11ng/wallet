@@ -1,0 +1,603 @@
+{
+  "info": {
+    "_postman_id": "64c299fc-fbd7-47cd-9e19-2bec6a7d5dcc",
+    "name": "wallet",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "32100634"
+  },
+  "item": [
+    {
+      "name": "register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"johndoe\",\r\n  \"password\": \"password\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8089/api/v1/auth/register",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8089",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"johndoe\",\r\n  \"password\": \"password\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8089/api/v1/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8089",
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "initialize",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// 1. Import Postman's built-in node-forge cryptography library\r",
+              "const forge = pm.require(\"npm:node-forge\");\r",
+              "\r",
+              "// 2. Build the Payload exactly as Java expects it\r",
+              "const rawUri = pm.request.url.getPath();\r",
+              "const uri = pm.variables.replaceIn(rawUri);\r",
+              "const requestTime = Date.now().toString();\r",
+              "const nonce = require('uuid').v4();\r",
+              "\r",
+              "// 3. Extract User ID from the JWT safely\r",
+              "const token = pm.environment.get(\"jwt_token\");\r",
+              "if (!token) {\r",
+              "    throw new Error(\"Missing jwt_token in environment variables\");\r",
+              "}\r",
+              "\r",
+              "const base64Payload = token.split('.')[1];\r",
+              "// Using Buffer instead of atob() makes it 100% safe in the Postman sandbox\r",
+              "const decodedPayload = JSON.parse(Buffer.from(base64Payload, 'base64').toString('utf8'));\r",
+              "const userId = decodedPayload.sub;\r",
+              "\r",
+              "const payloadToSign = uri + \"|\" + requestTime + \"|\" + nonce + \"|\" + userId;\r",
+              "\r",
+              "// 4. Perform TRUE RSA-256 Encryption using node-forge!\r",
+              "const privateKeyPEM = pm.environment.get(\"rsa_private_key\");\r",
+              "const privateKey = forge.pki.privateKeyFromPem(privateKeyPEM);\r",
+              "\r",
+              "// Create a SHA-256 message digest\r",
+              "const md = forge.md.sha256.create();\r",
+              "md.update(payloadToSign, 'utf8');\r",
+              "\r",
+              "// Sign the digest with the Private Key\r",
+              "const signatureBytes = privateKey.sign(md);\r",
+              "\r",
+              "// Convert the binary signature to a Base64 string\r",
+              "const signatureBase64 = forge.util.encode64(signatureBytes);\r",
+              "\r",
+              "// 5. Build the advanced header format\r",
+              "const finalSignatureHeader = \"algorithm=RSA256,keyVersion=1,signature=\" + signatureBase64;\r",
+              "\r",
+              "// 6. Inject the headers dynamically\r",
+              "pm.request.headers.add({key: 'Authorization', value: 'Bearer ' + token});\r",
+              "pm.request.headers.add({key: 'Request-Time', value: requestTime});\r",
+              "pm.request.headers.add({key: 'Nonce', value: nonce});\r",
+              "pm.request.headers.add({key: 'Signature', value: finalSignatureHeader});\r",
+              "\r",
+              "console.log(\"True RSA-256 Signature Generated Successfully with node-forge!\");"
+            ],
+            "type": "text/javascript",
+            "packages": {
+              "npm:node-forge": {
+                "id": "npm:node-forge"
+              }
+            },
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Request-ID",
+            "value": "REQ-INIT-0002",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"userId\": \"U-FE713883\",\r\n  \"currency\": \"MYR\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8089/api/v1/wallets/initialize",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8089",
+          "path": [
+            "api",
+            "v1",
+            "wallets",
+            "initialize"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "topup",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// 1. Import Postman's built-in node-forge cryptography library\r",
+              "const forge = pm.require(\"npm:node-forge\");\r",
+              "\r",
+              "// 2. Build the Payload exactly as Java expects it\r",
+              "const rawUri = pm.request.url.getPath();\r",
+              "const uri = pm.variables.replaceIn(rawUri);\r",
+              "const requestTime = Date.now().toString();\r",
+              "const nonce = require('uuid').v4();\r",
+              "\r",
+              "// 3. Extract User ID from the JWT safely\r",
+              "const token = pm.environment.get(\"jwt_token\");\r",
+              "if (!token) {\r",
+              "    throw new Error(\"Missing jwt_token in environment variables\");\r",
+              "}\r",
+              "\r",
+              "const base64Payload = token.split('.')[1];\r",
+              "// Using Buffer instead of atob() makes it 100% safe in the Postman sandbox\r",
+              "const decodedPayload = JSON.parse(Buffer.from(base64Payload, 'base64').toString('utf8'));\r",
+              "const userId = decodedPayload.sub;\r",
+              "\r",
+              "const payloadToSign = uri + \"|\" + requestTime + \"|\" + nonce + \"|\" + userId;\r",
+              "\r",
+              "// 4. Perform TRUE RSA-256 Encryption using node-forge!\r",
+              "const privateKeyPEM = pm.environment.get(\"rsa_private_key\");\r",
+              "const privateKey = forge.pki.privateKeyFromPem(privateKeyPEM);\r",
+              "\r",
+              "// Create a SHA-256 message digest\r",
+              "const md = forge.md.sha256.create();\r",
+              "md.update(payloadToSign, 'utf8');\r",
+              "\r",
+              "// Sign the digest with the Private Key\r",
+              "const signatureBytes = privateKey.sign(md);\r",
+              "\r",
+              "// Convert the binary signature to a Base64 string\r",
+              "const signatureBase64 = forge.util.encode64(signatureBytes);\r",
+              "\r",
+              "// 5. Build the advanced header format\r",
+              "const finalSignatureHeader = \"algorithm=RSA256,keyVersion=1,signature=\" + signatureBase64;\r",
+              "\r",
+              "// 6. Inject the headers dynamically\r",
+              "pm.request.headers.add({key: 'Authorization', value: 'Bearer ' + token});\r",
+              "pm.request.headers.add({key: 'Request-Time', value: requestTime});\r",
+              "pm.request.headers.add({key: 'Nonce', value: nonce});\r",
+              "pm.request.headers.add({key: 'Signature', value: finalSignatureHeader});\r",
+              "\r",
+              "console.log(\"True RSA-256 Signature Generated Successfully with node-forge!\");"
+            ],
+            "type": "text/javascript",
+            "packages": {
+              "npm:node-forge": {
+                "id": "npm:node-forge"
+              }
+            },
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Request-ID",
+            "value": "REQ-TOPUP-0002",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"walletId\": \"W-41146EDA\",\r\n  \"amount\": 1500.00,\r\n  \"source\": \"BANK_FPX\",\r\n  \"referenceId\": \"FPX-000002\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8089/api/v1/wallets/topup",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8089",
+          "path": [
+            "api",
+            "v1",
+            "wallets",
+            "topup"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "transfer",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// 1. Import Postman's built-in node-forge cryptography library\r",
+              "const forge = pm.require(\"npm:node-forge\");\r",
+              "\r",
+              "// 2. Build the Payload exactly as Java expects it\r",
+              "const rawUri = pm.request.url.getPath();\r",
+              "const uri = pm.variables.replaceIn(rawUri);\r",
+              "const requestTime = Date.now().toString();\r",
+              "const nonce = require('uuid').v4();\r",
+              "\r",
+              "// 3. Extract User ID from the JWT safely\r",
+              "const token = pm.environment.get(\"jwt_token\");\r",
+              "if (!token) {\r",
+              "    throw new Error(\"Missing jwt_token in environment variables\");\r",
+              "}\r",
+              "\r",
+              "const base64Payload = token.split('.')[1];\r",
+              "// Using Buffer instead of atob() makes it 100% safe in the Postman sandbox\r",
+              "const decodedPayload = JSON.parse(Buffer.from(base64Payload, 'base64').toString('utf8'));\r",
+              "const userId = decodedPayload.sub;\r",
+              "\r",
+              "const payloadToSign = uri + \"|\" + requestTime + \"|\" + nonce + \"|\" + userId;\r",
+              "\r",
+              "// 4. Perform TRUE RSA-256 Encryption using node-forge!\r",
+              "const privateKeyPEM = pm.environment.get(\"rsa_private_key\");\r",
+              "const privateKey = forge.pki.privateKeyFromPem(privateKeyPEM);\r",
+              "\r",
+              "// Create a SHA-256 message digest\r",
+              "const md = forge.md.sha256.create();\r",
+              "md.update(payloadToSign, 'utf8');\r",
+              "\r",
+              "// Sign the digest with the Private Key\r",
+              "const signatureBytes = privateKey.sign(md);\r",
+              "\r",
+              "// Convert the binary signature to a Base64 string\r",
+              "const signatureBase64 = forge.util.encode64(signatureBytes);\r",
+              "\r",
+              "// 5. Build the advanced header format\r",
+              "const finalSignatureHeader = \"algorithm=RSA256,keyVersion=1,signature=\" + signatureBase64;\r",
+              "\r",
+              "// 6. Inject the headers dynamically\r",
+              "pm.request.headers.add({key: 'Authorization', value: 'Bearer ' + token});\r",
+              "pm.request.headers.add({key: 'Request-Time', value: requestTime});\r",
+              "pm.request.headers.add({key: 'Nonce', value: nonce});\r",
+              "pm.request.headers.add({key: 'Signature', value: finalSignatureHeader});\r",
+              "\r",
+              "console.log(\"True RSA-256 Signature Generated Successfully with node-forge!\");"
+            ],
+            "type": "text/javascript",
+            "packages": {
+              "npm:node-forge": {
+                "id": "npm:node-forge"
+              }
+            },
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Request-ID",
+            "value": "TXN-TRANSFER-0002",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"fromWalletId\": \"W-66DE3550\",\r\n  \"toWalletId\": \"W-41146EDA\",\r\n  \"amount\": 50.00,\r\n  \"remark\": \"Test Transfer\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8089/api/v1/wallets/transfer",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8089",
+          "path": [
+            "api",
+            "v1",
+            "wallets",
+            "transfer"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "history",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// 1. Import Postman's built-in node-forge cryptography library\r",
+              "const forge = require('node-forge');\r",
+              "\r",
+              "// 2. Build the Payload exactly as Java expects it\r",
+              "const uri = pm.request.url.getPath();\r",
+              "const requestTime = Date.now().toString();\r",
+              "const nonce = require('uuid').v4();\r",
+              "\r",
+              "// 3. Extract User ID from the JWT safely\r",
+              "const token = pm.environment.get(\"jwt_token\");\r",
+              "if (!token) {\r",
+              "    throw new Error(\"Missing jwt_token in environment variables\");\r",
+              "}\r",
+              "\r",
+              "const base64Payload = token.split('.')[1];\r",
+              "// Using Buffer instead of atob() makes it 100% safe in the Postman sandbox\r",
+              "const decodedPayload = JSON.parse(Buffer.from(base64Payload, 'base64').toString('utf8'));\r",
+              "const userId = decodedPayload.sub;\r",
+              "\r",
+              "const payloadToSign = uri + \"|\" + requestTime + \"|\" + nonce + \"|\" + userId;\r",
+              "\r",
+              "// 4. Perform TRUE RSA-256 Encryption using node-forge!\r",
+              "const privateKeyPEM = pm.environment.get(\"rsa_private_key\");\r",
+              "const privateKey = forge.pki.privateKeyFromPem(privateKeyPEM);\r",
+              "\r",
+              "// Create a SHA-256 message digest\r",
+              "const md = forge.md.sha256.create();\r",
+              "md.update(payloadToSign, 'utf8');\r",
+              "\r",
+              "// Sign the digest with the Private Key\r",
+              "const signatureBytes = privateKey.sign(md);\r",
+              "\r",
+              "// Convert the binary signature to a Base64 string\r",
+              "const signatureBase64 = forge.util.encode64(signatureBytes);\r",
+              "\r",
+              "// 5. Build the advanced header format\r",
+              "const finalSignatureHeader = \"algorithm=RSA256,keyVersion=1,signature=\" + signatureBase64;\r",
+              "\r",
+              "// 6. Inject the headers dynamically\r",
+              "pm.request.headers.add({key: 'Authorization', value: 'Bearer ' + token});\r",
+              "pm.request.headers.add({key: 'Request-Time', value: requestTime});\r",
+              "pm.request.headers.add({key: 'Nonce', value: nonce});\r",
+              "pm.request.headers.add({key: 'Signature', value: finalSignatureHeader});\r",
+              "\r",
+              "console.log(\"True RSA-256 Signature Generated Successfully with node-forge!\");"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-Client-Id",
+            "value": "U-999",
+            "type": "text"
+          },
+          {
+            "key": "X-Request-ID",
+            "value": "REQ-HIST-001",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8089/api/v1/wallets/{{$walletId}}/history",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8089",
+          "path": [
+            "api",
+            "v1",
+            "wallets",
+            "{{$walletId}}",
+            "history"
+          ],
+          "query": [
+            {
+              "key": "walletId",
+              "value": "",
+              "type": "text",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "generate",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// 1. Import Postman's built-in node-forge cryptography library\r",
+              "const forge = pm.require(\"npm:node-forge\");\r",
+              "\r",
+              "// 2. Build the Payload exactly as Java expects it\r",
+              "const rawUri = pm.request.url.getPath();\r",
+              "const uri = pm.variables.replaceIn(rawUri);\r",
+              "const requestTime = Date.now().toString();\r",
+              "const nonce = require('uuid').v4();\r",
+              "\r",
+              "// 3. Extract User ID from the JWT safely\r",
+              "const token = pm.environment.get(\"jwt_token\");\r",
+              "if (!token) {\r",
+              "    throw new Error(\"Missing jwt_token in environment variables\");\r",
+              "}\r",
+              "\r",
+              "const base64Payload = token.split('.')[1];\r",
+              "// Using Buffer instead of atob() makes it 100% safe in the Postman sandbox\r",
+              "const decodedPayload = JSON.parse(Buffer.from(base64Payload, 'base64').toString('utf8'));\r",
+              "const userId = decodedPayload.sub;\r",
+              "\r",
+              "const payloadToSign = uri + \"|\" + requestTime + \"|\" + nonce + \"|\" + userId;\r",
+              "\r",
+              "// 4. Perform TRUE RSA-256 Encryption using node-forge!\r",
+              "const privateKeyPEM = pm.environment.get(\"rsa_private_key\");\r",
+              "const privateKey = forge.pki.privateKeyFromPem(privateKeyPEM);\r",
+              "\r",
+              "// Create a SHA-256 message digest\r",
+              "const md = forge.md.sha256.create();\r",
+              "md.update(payloadToSign, 'utf8');\r",
+              "\r",
+              "// Sign the digest with the Private Key\r",
+              "const signatureBytes = privateKey.sign(md);\r",
+              "\r",
+              "// Convert the binary signature to a Base64 string\r",
+              "const signatureBase64 = forge.util.encode64(signatureBytes);\r",
+              "\r",
+              "// 5. Build the advanced header format\r",
+              "const finalSignatureHeader = \"algorithm=RSA256,keyVersion=1,signature=\" + signatureBase64;\r",
+              "\r",
+              "// 6. Inject the headers dynamically\r",
+              "pm.request.headers.add({key: 'Authorization', value: 'Bearer ' + token});\r",
+              "pm.request.headers.add({key: 'Request-Time', value: requestTime});\r",
+              "pm.request.headers.add({key: 'Nonce', value: nonce});\r",
+              "pm.request.headers.add({key: 'Signature', value: finalSignatureHeader});\r",
+              "\r",
+              "console.log(\"True RSA-256 Signature Generated Successfully with node-forge!\");"
+            ],
+            "type": "text/javascript",
+            "packages": {
+              "npm:node-forge": {
+                "id": "npm:node-forge"
+              }
+            },
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8089/api/v1/wallets/qr/generate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8089",
+          "path": [
+            "api",
+            "v1",
+            "wallets",
+            "qr",
+            "generate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "decode",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8089/api/v1/wallets/qr/decode",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8089",
+          "path": [
+            "api",
+            "v1",
+            "wallets",
+            "qr",
+            "decode"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
